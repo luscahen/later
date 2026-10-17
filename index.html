@@ -29,7 +29,7 @@
 <main id="app" hidden>
   <header>
     <div><h1>Later</h1><p id="count" class="sub"></p></div>
-    <button id="theme" class="icon" aria-label="Toggle theme"></button>
+    <div class="tools"><button id="sync" class="icon" aria-label="Sync"></button><button id="theme" class="icon" aria-label="Toggle theme"></button></div>
   </header>
   <form id="add">
     <input id="title" placeholder="Add a task…" autocomplete="off" required>
@@ -52,6 +52,13 @@
   <p id="status" class="sub center"></p>
   <button id="logout" class="link center-block">Disconnect</button>
 </main>
+<dialog id="edit"><form id="edit-form">
+  <input id="e-title" placeholder="Task" required>
+  <input id="e-link" type="url" placeholder="Link" autocapitalize="off">
+  <textarea id="e-note" rows="4" placeholder="Note"></textarea>
+  <div class="eprio"><span class="sub">Importance</span><button type="button" data-p="1">1</button><button type="button" data-p="2">2</button><button type="button" data-p="3">3</button></div>
+  <div class="row"><button type="button" id="e-cancel" class="link">Cancel</button><button class="btn" type="submit">Save</button></div>
+</form></dialog>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
