@@ -1,11 +1,14 @@
 // State + logic. Saves are queued; on conflict we merge by id and retry.
 import * as gh from './github.js';
+import { preview } from './preview.js';
 const KEY = 'later.cfg', CACHE = 'later.cache';
 export const getCfg = () => JSON.parse(localStorage.getItem(KEY) || 'null');
 export const setCfg = c => c ? localStorage.setItem(KEY, JSON.stringify(c)) : localStorage.removeItem(KEY);
 
 let items = JSON.parse(localStorage.getItem(CACHE) || '[]'), sha = null, queue = Promise.resolve(), onStatus = () => {};
 export const setStatusHandler = f => onStatus = f;
+let onChange = () => {};
+export const setChangeHandler = f => onChange = f;
 export const visible = () => items.filter(i => !i.deleted).sort((a, b) => b.created - a.created);
 const persistLocal = () => localStorage.setItem(CACHE, JSON.stringify(items));
 
@@ -34,9 +37,23 @@ function save() {
   });
 }
 
+async function attach(it) {
+  if (!it.link) return;
+  const p = await preview(it.link);
+  if (p) { it.preview = p; it.updated = Date.now(); persistLocal(); save(); onChange(); }
+}
 export function add({ title, link, note, priority }) {
-  items.push({ id: crypto.randomUUID(), title, link, note, priority, done: false, created: Date.now(), updated: Date.now() });
-  persistLocal(); save();
+  const it = { id: crypto.randomUUID(), title, link, note, priority, done: false, created: Date.now(), updated: Date.now() };
+  items.push(it); persistLocal(); save(); attach(it);
+}
+export function update(id, f) {
+  const it = items.find(x => x.id === id), moved = f.link !== it.link;
+  Object.assign(it, f, { updated: Date.now() });
+  if (moved) delete it.preview;
+  persistLocal(); save(); if (moved) attach(it);
+}
+export async function sync() {
+  onStatus('Syncing…'); await queue; await load(); save(); await queue;
 }
 export function toggle(id) { const i = items.find(x => x.id === id); i.done = !i.done; i.updated = Date.now(); persistLocal(); save(); }
 export function remove(id) { const i = items.find(x => x.id === id); i.deleted = true; i.updated = Date.now(); persistLocal(); save(); }
