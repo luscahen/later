@@ -1,13 +1,15 @@
 import * as store from './store.js';
+import * as images from './images.js';
 const $ = s => document.querySelector(s);
-let filter = 'all', prio = 0, eid = null, eprio = 0;
-const card = i => `<a class="card" href="${esc(safe(i.link))}" target="_blank" rel="noopener">${i.preview.image ? `<img src="${esc(i.preview.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="ct">${esc(i.preview.title || host(i.link))}</span><span class="cs">${esc(host(i.link))}</span></a>`;
+let filter = 'all', prio = 0, eid = null, eprio = 0, afile = null, efile;
+const thumb = i => i.img ? `<img class="th" data-img="${esc(i.img)}" alt="">` : '';
+const card = i => `<a class="card" href="${esc(safe(i.link))}" target="_blank" rel="noopener">${i.img ? `<img data-img="${esc(i.img)}" alt="">` : i.preview.image ? `<img src="${esc(i.preview.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<span class="ct">${esc(i.preview.title || host(i.link))}</span><span class="cs">${esc(host(i.link))}</span></a>`;
 const paintE = () => document.querySelectorAll('.eprio button').forEach(x => x.classList.toggle('on', +x.dataset.p === eprio));
 function openEdit(id) {
   const i = store.visible().find(x => x.id === id); if (!i) return;
   eid = id; eprio = i.priority || 0;
   $('#e-title').value = i.title; $('#e-link').value = i.link || ''; $('#e-note').value = i.note || '';
-  paintE(); $('#edit').showModal();
+  efile = undefined; $('#e-fname').textContent = i.img ? 'Image attached' : ''; $('#e-rm').hidden = !i.img; paintE(); $('#edit').showModal();
 }
 
 const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -23,11 +25,12 @@ export function render() {
       <button class="chk" data-a="toggle" aria-label="Toggle done"></button>
       <div class="body"><div class="t">${esc(i.title)}</div>
         ${i.note ? `<p class="note">${esc(i.note)}</p>` : ''}
-        ${i.preview ? card(i) : ''}
+        ${i.preview ? card(i) : thumb(i)}
         ${i.link || i.priority ? `<div class="meta">${i.link && !i.preview ? `<a href="${esc(safe(i.link))}" target="_blank" rel="noopener">${esc(host(i.link))}</a>` : ''}${i.priority ? `<span>importance ${i.priority}</span>` : ''}</div>` : ''}
       </div>
       <button class="del" data-a="del" aria-label="Delete">×</button>
     </li>`).join('');
+  $('#list').querySelectorAll('img[data-img]').forEach(async el => { const u = await images.url(store.getCfg(), el.dataset.img).catch(() => ''); u ? el.src = u : el.remove(); });
 }
 
 export function initUI() {
@@ -52,8 +55,8 @@ export function initUI() {
   });
   $('#add').onsubmit = e => {
     e.preventDefault();
-    store.add({ title: $('#title').value.trim(), link: $('#link').value.trim() || undefined, note: $('#note').value.trim() || undefined, priority: prio || undefined });
-    e.target.reset(); prio = 0; $('#details').hidden = true;
+    store.add({ title: $('#title').value.trim(), link: $('#link').value.trim() || undefined, note: $('#note').value.trim() || undefined, priority: prio || undefined, file: afile });
+    afile = null; $('#fname').textContent = ''; e.target.reset(); prio = 0; $('#details').hidden = true;
     document.querySelectorAll('.prio button').forEach(x => x.classList.remove('on'));
     render();
   };
@@ -61,9 +64,14 @@ export function initUI() {
   $('#e-cancel').onclick = () => $('#edit').close();
   $('#edit-form').onsubmit = e => {
     e.preventDefault();
-    store.update(eid, { title: $('#e-title').value.trim(), link: $('#e-link').value.trim() || undefined, note: $('#e-note').value.trim() || undefined, priority: eprio || undefined });
+    store.update(eid, { title: $('#e-title').value.trim(), link: $('#e-link').value.trim() || undefined, note: $('#e-note').value.trim() || undefined, priority: eprio || undefined }, efile);
     $('#edit').close(); render();
   };
+  $('#pick').onclick = () => $('#file').click();
+  $('#file').onchange = e => { afile = e.target.files[0] || null; $('#fname').textContent = afile ? afile.name : ''; };
+  $('#e-pick').onclick = () => $('#e-file').click();
+  $('#e-file').onchange = e => { efile = e.target.files[0]; if (efile) $('#e-fname').textContent = efile.name; e.target.value = ''; };
+  $('#e-rm').onclick = () => { efile = null; $('#e-fname').textContent = 'Image will be removed'; };
   // Prefill from URL: ?t=title&u=link (for iOS Shortcuts / bookmarklets)
   const p = new URLSearchParams(location.search);
   if (p.get('t') || p.get('u')) {
