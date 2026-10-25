@@ -59,3 +59,7 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 .eprio .sub{margin:0 auto 0 0}
 .eprio button{width:36px;height:36px;border:1px solid var(--line);border-radius:50%;color:var(--mute)}
 .eprio button.on{background:var(--ink);color:var(--bgi);border-color:var(--ink)}
+
+.pick{display:flex;align-items:center;gap:14px;padding:.2em 0}
+.pick .sub{margin:0;font-size:.85em}
+.th{display:block;margin-top:.7em;max-width:min(240px,100%);max-height:220px;border-radius:12px;border:1px solid var(--line);object-fit:cover}
