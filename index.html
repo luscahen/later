@@ -37,6 +37,7 @@
     <div id="details" hidden>
       <input id="link" type="url" placeholder="Link" autocapitalize="off">
       <textarea id="note" rows="2" placeholder="Note"></textarea>
+      <div class="pick"><button type="button" id="pick" class="link">+ Add image</button><input id="file" type="file" accept="image/*" hidden><span id="fname" class="sub"></span></div>
       <div class="prio" role="group" aria-label="Importance">
         <span class="sub">Importance</span>
         <button type="button" data-p="1">1</button><button type="button" data-p="2">2</button><button type="button" data-p="3">3</button>
@@ -56,6 +57,7 @@
   <input id="e-title" placeholder="Task" required>
   <input id="e-link" type="url" placeholder="Link" autocapitalize="off">
   <textarea id="e-note" rows="4" placeholder="Note"></textarea>
+  <div class="pick"><button type="button" id="e-pick" class="link">Replace / add image</button><button type="button" id="e-rm" class="link" hidden>Remove</button><input id="e-file" type="file" accept="image/*" hidden><span id="e-fname" class="sub"></span></div>
   <div class="eprio"><span class="sub">Importance</span><button type="button" data-p="1">1</button><button type="button" data-p="2">2</button><button type="button" data-p="3">3</button></div>
   <div class="row"><button type="button" id="e-cancel" class="link">Cancel</button><button class="btn" type="submit">Save</button></div>
 </form></dialog>
